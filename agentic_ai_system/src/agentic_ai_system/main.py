@@ -1,68 +1,47 @@
-#!/usr/bin/env python
-import sys
-import warnings
+import os
+import re
+from dotenv import load_dotenv
+from .crew import AgenticAICrew
+from rich.console import Console
 
-from datetime import datetime
+# Load environment variables from .env file
+load_dotenv()
+console = Console()
 
-from agentic_ai_system.crew import AgenticAiSystem
-
-warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
-
-# This main file is intended to be a way for you to run your
-# crew locally, so refrain from adding unnecessary logic into this file.
-# Replace with inputs you want to test with, it will automatically
-# interpolate any tasks and agents information
+def get_dataset_filename():
+    """Reads the dataset filename from the user_preferences.txt file."""
+    try:
+        with open("user_preferences.txt", "r") as f:
+            for line in f:
+                if line.startswith("DATASET_FILENAME="):
+                    match = re.search(r'DATASET_FILENAME=(.*)', line.strip())
+                    if match:
+                        return match.group(1).strip()
+    except FileNotFoundError:
+        return None
+    return None
 
 def run():
-    """
-    Run the crew.
-    """
-    inputs = {
-        'topic': 'AI LLMs',
-        'current_year': str(datetime.now().year)
-    }
-    
-    try:
-        AgenticAiSystem().crew().kickoff(inputs=inputs)
-    except Exception as e:
-        raise Exception(f"An error occurred while running the crew: {e}")
+    """Main execution function"""
+    if not os.getenv("GOOGLE_API_KEY"):
+        console.print("[bold red]ERROR:[/bold red] GOOGLE_API_KEY not found. Please set it in your .env file.")
+        return
 
+    dataset_filename = get_dataset_filename()
+    if not dataset_filename:
+        console.print("[bold red]ERROR:[/bold red] DATASET_FILENAME not found in [yellow]user_preferences.txt[/yellow].")
+        console.print("Please specify the filename (e.g., birth_data.csv) and ensure the file exists in the 'data' folder.")
+        return
+        
+    dataset_path = os.path.join("data", dataset_filename)
 
-def train():
-    """
-    Train the crew for a given number of iterations.
-    """
-    inputs = {
-        "topic": "AI LLMs",
-        'current_year': str(datetime.now().year)
-    }
-    try:
-        AgenticAiSystem().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
+    if not os.path.exists(dataset_path):
+        console.print(f"[bold red]ERROR:[/bold red] Dataset not found at [yellow]{dataset_path}[/yellow].")
+        console.print("Please ensure the file is in the 'data' directory.")
+        return
 
-    except Exception as e:
-        raise Exception(f"An error occurred while training the crew: {e}")
+    agentic_crew = AgenticAICrew()
+    agentic_crew.kickoff()
 
-def replay():
-    """
-    Replay the crew execution from a specific task.
-    """
-    try:
-        AgenticAiSystem().crew().replay(task_id=sys.argv[1])
-
-    except Exception as e:
-        raise Exception(f"An error occurred while replaying the crew: {e}")
-
-def test():
-    """
-    Test the crew execution and returns the results.
-    """
-    inputs = {
-        "topic": "AI LLMs",
-        "current_year": str(datetime.now().year)
-    }
-    
-    try:
-        AgenticAiSystem().crew().test(n_iterations=int(sys.argv[1]), eval_llm=sys.argv[2], inputs=inputs)
-
-    except Exception as e:
-        raise Exception(f"An error occurred while testing the crew: {e}")
+if __name__ == "__main__":
+    run()
