@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.Python
+build/
+dist/
+*.egg-info/
+.env
+.venv
+venv/
+outputs/
+data/*.csv
+!data/README.md
+.idea/
+.vscode/

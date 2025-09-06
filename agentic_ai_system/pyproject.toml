@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "agentic_ai_system"
+version = "0.1.0"
+description = "Agentic AI System for Telangana Open Data Portal using CrewAI"
+authors = ["Neha Sureddi <nehasureddi@gmail.com>"]
+readme = "README.md"
+packages = [{ include = "agentic_ai_system", from = "src" }]
+python = ">=3.10,<3.14"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.14"
+crewai = { extras = ["tools"], version = ">=0.177.0,<1.0.0" }
+
+[tool.poetry.scripts]
+agentic_ai_system = "agentic_ai_system.main:run"
+run_crew = "agentic_ai_system.main:run"
+train = "agentic_ai_system.main:train"
+replay = "agentic_ai_system.main:replay"
+test = "agentic_ai_system.main:test"
+
+[tool.crewai]
+type = "crew"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+
