@@ -20,72 +20,14 @@ The **Real-Time Governance System (RTGS)** is an agentic AI system designed to p
 
 ## 📊 Dataset Support
 
-Currently tested with:
+Currently testing with:
 - **Birth Registration Data** (2023-2024): 6,075 records from Telangana districts
 - **Multi-sector compatibility**: Agriculture, transport, health, education datasets
-
-## 🚀 Quick Start
 
 ### Prerequisites
 - Python 3.10+
 - UV package manager
 - Gemini API key
-
-### Installation
-
-1. **Clone and setup**:
-```bash
-cd rtgs_agentic_system
-uv sync
-```
-
-2. **Configure API key** (already set in .env):
-```bash
-# Gemini API key is already configured
-```
-
-### Usage
-
-#### Run with Birth Data
-```bash
-uv run python src/rtgs_agentic_system/main.py --dataset src/rtgs_agentic_system/dataset/birth_data_2023-01-01_2024-01-31.csv --output-dir ./birth_analysis
-```
-
-#### Run Demo Mode
-```bash
-uv run python src/rtgs_agentic_system/main.py demo
-```
-
-#### Available Commands
-- `--dataset <path>`: Specify CSV dataset path
-- `--output-dir <dir>`: Output directory for results
-- `--verbose`: Enable verbose output
-- `demo`: Run with sample data
-- `train`: Train the crew
-- `replay`: Replay from specific task
-- `test`: Test the crew
-
-## 📁 Project Structure
-
-```
-rtgs_agentic_system/
-├── src/rtgs_agentic_system/
-│   ├── config/
-│   │   ├── agents.yaml          # Agent configurations
-│   │   └── tasks.yaml           # Task definitions
-│   ├── tools/                   # Custom tools
-│   │   ├── data_tools.py        # Data ingestion
-│   │   ├── cleaning_tools.py    # Data cleaning
-│   │   ├── insight_tools.py     # Analysis & visualization
-│   │   └── documentation_tools.py # Documentation
-│   ├── dataset/                 # Sample datasets
-│   │   └── birth_data_2023-01-01_2024-01-31.csv
-│   ├── crew.py                  # Main crew definition
-│   └── main.py                  # CLI interface
-├── .venv/                       # Virtual environment
-├── pyproject.toml              # Dependencies
-└── README.md                   # This file
-```
 
 ## 🔧 Technical Details
 
@@ -105,16 +47,6 @@ The system generates:
 - **Visualizations**: Charts and graphs (PNG format)
 - **Documentation**: Comprehensive workflow documentation
 
-## 🎯 Hackathon Compliance
-
-✅ **Dataset Selection**: Telangana birth registration data (2023-2024)
-✅ **Ingestion & Standardization**: Automated data profiling and schema creation
-✅ **Cleaning & Transformation**: Missing value handling, outlier detection, type conversion
-✅ **Insights Output**: Statistical analysis, correlations, policy recommendations
-✅ **Logs & Documentation**: Comprehensive logging and human-readable reports
-✅ **CLI-Accessible Results**: Terminal interface with file outputs
-✅ **Data-Agnostic Design**: Works with any CSV dataset from Telangana portal
-
 ## 🔍 Sample Analysis Results
 
 For the birth data (6,075 records):
@@ -132,27 +64,8 @@ For the birth data (6,075 records):
 4. **Real-time Processing**: Live data integration
 5. **Cross-sector Analysis**: Multi-dataset correlation analysis
 
-## 📝 Usage Examples
 
-### Basic Analysis
-```bash
-# Analyze birth data
-uv run python src/rtgs_agentic_system/main.py --dataset src/rtgs_agentic_system/dataset/birth_data_2023-01-01_2024-01-31.csv
-```
-
-### Custom Output Directory
-```bash
-# Save results to custom directory
-uv run python src/rtgs_agentic_system/main.py --dataset data.csv --output-dir ./my_analysis
-```
-
-### Demo Mode
-```bash
-# Run with sample data
-uv run python src/rtgs_agentic_system/main.py demo
-```
-
-## 🏆 Hackathon Features
+## Features
 
 - **Agentic Architecture**: Multi-agent coordination with CrewAI
 - **Data Agnostic**: Works with any Telangana government dataset
@@ -163,4 +76,4 @@ uv run python src/rtgs_agentic_system/main.py demo
 
 ---
 
-**Built for the RTGS Hackathon** - Transforming government data into actionable insights for better governance.
+Transforming government data into actionable insights for better governance.
