@@ -1,0 +1,180 @@
+data_ingestion_task:
+  description: >
+    You are examining a critical government dataset that will inform policy decisions for Telangana state.
+    Your expertise is essential for ensuring this analysis starts with a solid foundation.
+    
+    Execute these steps methodically:
+    
+    1. Use ReadCSVTool with the provided filename from the data/ directory (from user_preference.txt).
+    2. Use InspectDataTool with "overview" to get comprehensive structural information  
+    3. Use ViewColumnTool to examine 3-4 key columns that seem most important for governance
+    4. Use InspectDataTool with "missing" to analyze missing value patterns
+    5. Use SaveSchemaTool to create schema documentation
+    
+    Apply your professional expertise to assess:
+    - What governance domain does this dataset represent (agriculture, transport, health, etc.)?
+    - Which columns are most critical for policy analysis?
+    - What data quality issues could compromise governance insights?
+    - How suitable is this dataset for identifying resource allocation patterns or service delivery gaps?
+    
+    Think like the senior analyst you are - provide professional interpretation, not just raw data reports.
+    
+  expected_output: >
+    Create a comprehensive data ingestion assessment in markdown format:
+    
+    ## Dataset Overview
+    Your expert interpretation of what this dataset represents in Telangana governance context
+    
+    ## Schema Analysis  
+    Key columns analysis with governance relevance and data quality assessment
+    
+    ## Data Quality Assessment
+    Critical quality issues identified and their potential impact on policy analysis
+    
+    ## Governance Readiness Score
+    Professional assessment (1-10) with detailed reasoning on dataset's suitability for policy insights
+    
+    ## Recommended Next Steps
+    Your expert recommendations for data preparation priorities
+  output_file: 'outputs/logs/ingestion_report.json'
+  agent: data_ingestion_agent
+
+data_standardization_task:
+  description: >
+    Based on the ingestion analysis, you must now systematically clean and prepare this dataset
+    for reliable governance analysis. Your decisions will directly impact the quality of policy insights.
+    
+    Follow this systematic approach:
+    
+    1. Review the ingestion assessment to understand the key quality issues
+    2. Use ViewColumnTool to examine problematic columns in detail  
+    3. Use LogTransformationTool to document each cleaning decision you make
+    4. Use SafeExecuteTool to perform cleaning operations (provide exact pandas operations)
+    5. Use CalculateStatsTool to verify your cleaning improved data quality
+    
+    Make professional decisions about:
+    - Which data quality issues are most critical to address for governance analysis
+    - How to handle missing values based on their meaning in this specific context
+    - What standardizations will improve analytical reliability
+    - The optimal sequence of cleaning operations
+    
+    Save your final cleaned dataset with a meaningful name that reflects the governance domain.
+    Document every decision with clear reasoning.
+    
+  expected_output: >
+    Produce a detailed data standardization report in markdown format:
+    
+    ## Cleaning Strategy
+    Your systematic approach and professional reasoning for the cleaning plan
+    
+    ## Transformation Log
+    Each cleaning operation performed with justification and impact assessment
+    
+    ## Quality Improvement Analysis
+    Before/after comparison showing how cleaning enhanced dataset reliability  
+    
+    ## Data Integrity Verification
+    Your assessment of whether cleaning preserved data meaning and governance relevance
+    
+    ## Final Dataset Assessment
+    Evaluation of the cleaned dataset's readiness for governance pattern analysis
+  
+  output_file: 'outputs/logs/standardization_report.md'
+  agent: data_standardization_agent
+
+analysis_task:
+  description: >
+    Now conduct a comprehensive analysis of the cleaned dataset to identify governance insights
+    that will be valuable for Telangana policymakers. Focus on patterns that reveal actionable
+    opportunities for improving governance outcomes.
+    
+    Systematic analysis approach:
+    
+    1. Use CalculateStatsTool with "describe" to understand overall data patterns
+    2. Identify geographic/administrative dimensions and use "groupby" analysis to find imbalances
+    3. Use "correlation" analysis to identify relationships between governance variables
+    4. Use "value_counts" on key categorical variables to understand distribution patterns
+    5. Apply your governance expertise to interpret what these patterns mean for policy
+    6. Use SaveChartTool to create at least one compelling visualization that highlights a key insight
+    
+    Focus your analysis on discovering:
+    - Geographic imbalances suggesting unequal resource allocation or service access
+    - Performance variations indicating administrative efficiency differences
+    - Trends or patterns suggesting systemic strengths or weaknesses  
+    - Outliers or anomalies that might indicate issues needing investigation
+    - Correlations that suggest policy intervention opportunities
+    
+    Remember: Don't just report numbers. Interpret what they mean for Telangana governance
+    and citizen welfare. Think about what busy policymakers would find most actionable.
+    
+  expected_output: >
+    Generate a comprehensive governance analysis report in markdown format:
+    
+    ## Executive Summary of Key Findings
+    The most critical governance insights discovered that demand policy attention
+    
+    ## Geographic/Administrative Analysis
+    Regional variations and imbalances with implications for resource allocation
+    
+    ## Performance Pattern Analysis  
+    Systemic strengths, weaknesses, and efficiency variations across administrative units
+    
+    ## Critical Issues Requiring Attention
+    Specific problems identified that need immediate policy intervention
+    
+    ## Opportunity Areas for Policy Impact
+    Data-supported recommendations for where interventions could have highest impact
+    
+    ## Supporting Statistical Evidence
+    Key analyses and calculations that substantiate your governance findings
+
+  output_file: 'outputs/reports/analysis_report.md'
+  agent: analysis_agent
+
+policy_insights_task:
+  description: >
+    You are now preparing a high-level policy brief for Telangana state government leadership.
+    This brief will inform critical governance decisions, so your recommendations must be
+    strategic, specific, and implementable.
+    
+    Your task is to:
+    
+    1. Synthesize the analysis findings into strategic insights
+    2. Identify the 3-5 most critical issues that need government attention  
+    3. Develop specific, actionable policy recommendations with clear implementation pathways
+    4. Prioritize recommendations based on impact potential and implementation feasibility
+    5. Use SaveReportTool to create the final policy brief
+    
+    Frame your recommendations considering:
+    - Telangana's administrative structure and governance priorities
+    - Resource constraints typical of state governments
+    - Political feasibility and stakeholder considerations
+    - Implementation timelines that align with government planning cycles
+    - Success metrics that can be tracked and reported
+    
+    Write for an audience of Secretaries, Ministers, and senior administrators who need
+    to make quick decisions about resource allocation and policy priorities.
+    
+  expected_output: >
+    Create a strategic policy brief in markdown format using SaveReportTool:
+    
+    ## Executive Summary
+    Top 3 critical findings and primary policy recommendations for immediate leadership attention
+    
+    ## Strategic Priority Recommendations
+    5-7 specific, actionable policy interventions ranked by impact and feasibility
+    
+    ## Implementation Roadmap
+    Clear timelines, responsible agencies, and resource requirements for each recommendation
+    
+    ## Expected Outcomes and Success Metrics
+    Measurable improvements these interventions should achieve for Telangana citizens
+    
+    ## Resource Allocation Guidance
+    Budget implications and suggested prioritization for resource allocation decisions
+    
+    ## Risk Assessment and Mitigation
+    Implementation challenges and strategies to ensure successful execution
+
+  output_file: 'outputs/reports/policy_brief.md'
+  agent: policy_insights_agent
