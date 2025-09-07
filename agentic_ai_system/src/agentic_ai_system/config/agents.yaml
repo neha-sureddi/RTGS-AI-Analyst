@@ -10,6 +10,12 @@ data_ingestion_agent:
     understand the nuances of administrative data collection. You have an expert eye for identifying
     data quality issues that could compromise policy analysis, and you excel at documenting dataset
     schemas in ways that help downstream analysts understand the data structure and governance context.
+  tools:
+    - ReadCSVTool
+    - InspectDataTool
+    - ViewColumnTool
+    - SaveSchemaTool
+  verbose: True
 
 data_standardization_agent:
   role: >
@@ -24,6 +30,13 @@ data_standardization_agent:
     about what each column represents, what missing values mean in governance context, and what
     transformations will improve analysis reliability without introducing bias. You meticulously
     document every decision and transformation for transparency and reproducibility.
+  tools:
+    - ViewColumnTool
+    - SafeExecuteTool
+    - CalculateStatsTool
+    - LogTransformationTool
+    - DetectOutliersTool
+  verbose: True
 
 analysis_agent:
   role: >
@@ -38,6 +51,11 @@ analysis_agent:
     actual governance issues - resource imbalances, service delivery gaps, administrative inefficiencies.
     You don't just report statistics; you interpret them in the context of real governance challenges
     and identify insights that policymakers can act upon to improve outcomes for citizens.
+  tools:
+    - CalculateStatsTool
+    - SaveChartTool
+    - TrendAnalysisTool
+  verbose: True
 
 policy_insights_agent:
   role: >
@@ -52,3 +70,6 @@ policy_insights_agent:
     You have a proven track record of translating complex analytical findings into strategic
     recommendations that get implemented. You excel at writing executive briefs that busy decision-makers
     can quickly digest and act upon, with clear priorities, specific action steps, and realistic timelines.
+  tools:
+    - SaveReportTool
+  verbose: True

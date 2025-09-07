@@ -5,7 +5,7 @@ data_ingestion_task:
     
     Execute these steps methodically:
     
-    1. Use ReadCSVTool to load the dataset from the data/ directory (look for CSV files)
+    1. Use ReadCSVTool with the provided filename from the data/ directory (from user_preference.txt).
     2. Use InspectDataTool with "overview" to get comprehensive structural information  
     3. Use ViewColumnTool to examine 3-4 key columns that seem most important for governance
     4. Use InspectDataTool with "missing" to analyze missing value patterns
@@ -36,15 +36,8 @@ data_ingestion_task:
     
     ## Recommended Next Steps
     Your expert recommendations for data preparation priorities
-
-  human_input: >
-    Please provide the filename of the CSV dataset located in the data/ directory that you would like to analyze.
-    Make sure the dataset is relevant to Telangana state governance and policy analysis.
-
-  output_jason= True
-  output_filename: ingestion_report.json
-
-  agent: >data_ingestion_agent
+  output_file: 'outputs/logs/ingestion_report.json'
+  agent: data_ingestion_agent
 
 data_standardization_task:
   description: >
@@ -85,6 +78,9 @@ data_standardization_task:
     
     ## Final Dataset Assessment
     Evaluation of the cleaned dataset's readiness for governance pattern analysis
+  
+  output_file: 'outputs/logs/standardization_report.md'
+  agent: data_standardization_agent
 
 analysis_task:
   description: >
@@ -132,6 +128,9 @@ analysis_task:
     ## Supporting Statistical Evidence
     Key analyses and calculations that substantiate your governance findings
 
+  output_file: 'outputs/reports/analysis_report.md'
+  agent: analysis_agent
+
 policy_insights_task:
   description: >
     You are now preparing a high-level policy brief for Telangana state government leadership.
@@ -176,3 +175,6 @@ policy_insights_task:
     
     ## Risk Assessment and Mitigation
     Implementation challenges and strategies to ensure successful execution
+
+  output_file: 'outputs/reports/policy_brief.md'
+  agent: policy_insights_agent

@@ -1,4 +1,8 @@
-User name is John Doe.
-User is an AI Engineer.
-User is interested in AI Agents.
-User is based in San Francisco, California.
+DATASET_FILENAME=birth_data.csv
+
+ANALYSIS_YEAR=all
+ANALYSIS_DISTRICT=all
+
+CHART_TOP_N=10
+
+REPORT_FORMAT=markdown

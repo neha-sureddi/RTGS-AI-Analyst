@@ -1,4 +1,6 @@
-from crewai_tools import BaseTool
+from crewai.tools import BaseTool
+from typing import Type
+from pydantic import BaseModel, Field
 import pandas as pd
 import numpy as np
 import json
@@ -8,10 +10,25 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import seaborn as sns
 from tabulate import tabulate
+import io
 
-# Global dataset storage for tools to share
 current_dataset = None
 dataset_metadata = {}
+
+class MyCustomToolInput(BaseModel):
+    """Input schema for MyCustomTool."""
+    argument: str = Field(..., description="Description of the argument.")
+
+class MyCustomTool(BaseTool):
+    name: str = "Name of my tool"
+    description: str = (
+        "Clear description for what this tool is useful for, your agent will need this information to use it."
+    )
+    args_schema: Type[BaseModel] = MyCustomToolInput
+
+    def _run(self, argument: str) -> str:
+        # Implementation goes here
+        return "this is an example of a tool output, ignore it and move along."
 
 class ReadCSVTool(BaseTool):
     name: str = "Read CSV Dataset"
@@ -50,7 +67,6 @@ class InspectDataTool(BaseTool):
         
         try:
             if aspect == "overview":
-                import io
                 buffer = io.StringIO()
                 current_dataset.info(buf=buffer)
                 info_str = buffer.getvalue()

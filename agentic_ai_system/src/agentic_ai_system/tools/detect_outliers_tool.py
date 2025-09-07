@@ -1,5 +1,5 @@
 import pandas as pd
-from crewai_tools import BaseTool
+from crewai.tools import BaseTool
 from .data_tools import current_dataset
 from typing import Type
 from pydantic import BaseModel, Field

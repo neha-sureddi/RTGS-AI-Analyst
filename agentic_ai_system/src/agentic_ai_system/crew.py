@@ -12,30 +12,37 @@ from .tools.data_tools import (
     ReadCSVTool, InspectDataTool, ViewColumnTool, SafeExecuteTool,
     CalculateStatsTool, SaveSchemaTool, LogTransformationTool, SaveReportTool
 )
-from .tools.custom_tool import MyCustomTool
 from .tools.save_chart_tool import SaveChartTool
 from .tools.detect_outliers_tool import DetectOutliersTool
 from .tools.trend_analysis_tool import TrendAnalysisTool
+from pydantic import BaseModel, Field
 
 console = Console()
 
+class IngestionReport(BaseModel):
+    filename: str = Field(description="The name of the ingested dataset file.")
+    num_rows: int = Field(description="The number of rows in the dataset.")
+    num_columns: int = Field(description="The number of columns in the dataset.")
+    status: str = Field(description="The status of the ingestion process (e.g., 'Success', 'Failed').")
+    sector: str = Field(description="The sector this dataset belongs to (e.g., 'Agriculture', 'Health', 'Education').")
+    governance_relevance: str = Field(description="Explanation of why this dataset matters for governance.")
+    scope_details: str = Field(description="Details if the dataset was scoped down (e.g., 'one district/year').")
+
 class AgenticAICrew:
-    def __init__(self):
+    def __init__(self, user_prefs=None):
+        self.user_prefs = user_prefs
         # Load configurations
         base_dir = Path(__file__).parent
-        
         with open(base_dir / "config" / "agents.yaml", 'r') as f:
             self.agents_config = yaml.safe_load(f)
-        
         with open(base_dir / "config" / "tasks.yaml", 'r') as f:
             self.tasks_config = yaml.safe_load(f)
 
-        # Initialize agents with all relevant tools
         self.data_ingestion_agent = Agent(
             role=self.agents_config['data_ingestion_agent']['role'],
             goal=self.agents_config['data_ingestion_agent']['goal'], 
             backstory=self.agents_config['data_ingestion_agent']['backstory'],
-            tools=[ReadCSVTool(), InspectDataTool(), ViewColumnTool(), SaveSchemaTool()],
+            tools=[ReadCSVTool(), InspectDataTool(), ViewColumnTool(), SaveSchemaTool(), SaveReportTool()],
             verbose=True,
             llm="gemini/gemini-1.5-flash"
         )
@@ -44,7 +51,7 @@ class AgenticAICrew:
             role=self.agents_config['data_standardization_agent']['role'],
             goal=self.agents_config['data_standardization_agent']['goal'],
             backstory=self.agents_config['data_standardization_agent']['backstory'], 
-            tools=[ViewColumnTool(), SafeExecuteTool(), CalculateStatsTool(), LogTransformationTool(), DetectOutliersTool()],
+            tools=[ViewColumnTool(), SafeExecuteTool(), CalculateStatsTool(), LogTransformationTool(), DetectOutliersTool(),],
             verbose=True,
             llm="gemini/gemini-1.5-flash"
         )
@@ -53,7 +60,7 @@ class AgenticAICrew:
             role=self.agents_config['analysis_agent']['role'],
             goal=self.agents_config['analysis_agent']['goal'],
             backstory=self.agents_config['analysis_agent']['backstory'],
-            tools=[CalculateStatsTool(), SaveChartTool(), TrendAnalysisTool()],
+            tools=[CalculateStatsTool(), SaveChartTool(), TrendAnalysisTool(),],
             verbose=True,
             llm="gemini/gemini-1.5-flash"
         )
@@ -73,8 +80,8 @@ class AgenticAICrew:
             expected_output=self.tasks_config['data_ingestion_task']['expected_output'],
             agent=self.data_ingestion_agent,
             human_input=True,
-            output_json=True,
-            output_file='outputs/logs/ingestion_report.json'
+            # output_json=IngestionReport, # Removed as we'll generate a markdown report
+            output_file='outputs/logs/ingestion_report.md' # Changed to markdown
         )
         
         self.data_standardization_task = Task(
