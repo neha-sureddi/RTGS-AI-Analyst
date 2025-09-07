@@ -1,8 +1,6 @@
-Here is a comprehensive `README.md` file updated to reflect all the changes and requirements for your submission, including the reproducible run script for Windows.
+# RTGS-Style AI Analyst for Telangana Open Data
 
-# Telangana Governance Data Analyst
-
-[Link to your unlisted demo video here] 🎥
+[Link to your demo video here] 🎥
 
 This project is an AI-powered data analysis pipeline designed to extract policy-relevant insights from Telangana government data. It uses a multi-agent system built on CrewAI to automate the entire process, from data ingestion and cleaning to analysis and policy brief generation. The pipeline is designed to be highly reproducible and flexible, capable of handling various tabular datasets with minimal configuration.
 
@@ -113,5 +111,5 @@ Upon successful completion, the `outputs/` directory will be populated with the 
       * `DateofRegister`: Date the record was registered, used for temporal analysis.
       * `Gender`: Coded integer values representing gender.
       * `year`, `month`: Extracted features for year-over-year and monthly analysis.
-      
+
  Transforming government data into actionable insights for better governance.

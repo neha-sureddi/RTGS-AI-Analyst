@@ -12,7 +12,7 @@ from crewai.llm import LLM
 from analyst.tools.data_tools import (
     ReadCSVTool, InspectDataTool, ViewColumnTool, SafeExecuteTool,
     CalculateStatsTool, SaveSchemaTool, LogTransformationTool, SaveReportTool,
-    QuickCleanTool
+    QuickCleanTool  # Add the new quick clean tool
 )
 from analyst.tools.save_chart_tool import SaveChartTool
 from analyst.tools.detect_outliers_tool import DetectOutliersTool
@@ -69,12 +69,11 @@ class AnalystCrew:
             memory=False
         )
         
-        # Add SafeExecuteTool to the analysis agent's toolset
         self.analysis_agent = Agent(
             role="Governance Data Analyst",
-            goal="Analyze the cleaned dataset to find patterns relevant to Telangana governance, applying user-specified filters.",
+            goal="Analyze the cleaned dataset to find patterns relevant to Telangana governance",
             backstory="Expert in extracting policy-relevant insights from government data",
-            tools=[ReadCSVTool(), CalculateStatsTool(), SaveChartTool(), TrendAnalysisTool(), SafeExecuteTool()],
+            tools=[ReadCSVTool(), CalculateStatsTool(), SaveChartTool(), TrendAnalysisTool()],
             verbose=True,
             llm=self.llm,
             max_iter=5,
@@ -146,7 +145,7 @@ class AnalystCrew:
     def _get_ingestion_description(self) -> str:
         dataset = self.user_prefs.get('DATASET_FILENAME', 'birth_data.csv')
         
-        return f"""TASK: Load and inspect Telangana government dataset for quality assessment.
+        return f"""TASK: Load and assess the quality of {dataset}
 
 STEPS TO EXECUTE:
 1. Load the dataset using `ReadCSVTool` with file_path="data/{dataset}".
@@ -156,8 +155,9 @@ STEPS TO EXECUTE:
 
 Provide a professional assessment of the dataset's quality and its readiness for detailed governance analysis."""
 
+
     def _get_cleaning_description(self) -> str:
-        return """TASK: Clean the dataset thoroughly and save it for analysis.
+        return """TASK: Clean the dataset thoroughly and save it for analysis
 
 CRITICAL REQUIREMENT: You MUST save a cleaned dataset to outputs/cleaned_data/cleaned_data.csv
 
@@ -176,41 +176,36 @@ The QuickCleanTool will:
 VERIFY: Ensure the cleaned dataset file exists and is properly saved."""
 
     def _get_analysis_description(self) -> str:
-        analysis_year = self.user_prefs.get('ANALYSIS_YEAR', 'all')
-        analysis_district = self.user_prefs.get('ANALYSIS_DISTRICT', 'all')
-        
-        task_description = """TASK: Analyze the cleaned dataset for governance insights.
+        return """TASK: Analyze the cleaned dataset for governance insights
 
-STEPS TO EXECUTE:
-1. Use `ReadCSVTool` with file_path="outputs/cleaned_data/cleaned_data.csv" to load the cleaned data.
-"""
-        # Dynamic filtering steps
-        if analysis_year != 'all' and analysis_year:
-            task_description += f"2. Use `SafeExecuteTool` with a pandas query to filter the DataFrame for the year {analysis_year}. For example, query=\"df = df[df['year'] == {analysis_year}]\".\n"
-        if analysis_district != 'all' and analysis_district:
-            task_description += f"3. Use `SafeExecuteTool` with a pandas query to filter the DataFrame for the district {analysis_district}. For example, query=\"df = df[df['DistrictName'] == '{analysis_district}']\".\n"
+LOAD CLEANED DATA: Use ReadCSVTool with file_path="outputs/cleaned_data/cleaned_data.csv"
 
-        # Core analysis and visualization steps
-        task_description += """
-4. Generate descriptive statistics using `CalculateStatsTool` with stat_type="describe".
-5. Calculate value counts for the 'DistrictName' column using `CalculateStatsTool` with stat_type="value_counts".
-6. Create a bar chart of the district distribution using `SaveChartTool` with plot_type="bar", x_column="DistrictName", and title="Data Distribution by District".
-7. Analyze temporal trends using `TrendAnalysisTool` on the 'DateofRegister' column.
-8. Create a line chart of the temporal trend using `SaveChartTool` with plot_type="line", x_column="DateofRegister", and title="Data Trends Over Time".
+ANALYSIS STEPS:
+1. ReadCSVTool - load the cleaned dataset
+2. CalculateStatsTool with stat_type="describe" - get overall statistics
+3. CalculateStatsTool with stat_type="value_counts" and parameters="[most_relevant_column]"
+4. CalculateStatsTool with stat_type="groupby" and parameters="[group_col],[value_col],count" 
+5. SaveChartTool - create 2 visualizations showing key patterns
+6. TrendAnalysisTool - if date columns exist, analyze temporal trends
 
-Provide a final report summarizing all key findings.
-"""
-        return task_description
+GOVERNANCE FOCUS:
+- Regional disparities in service delivery
+- Administrative efficiency variations
+- Resource allocation patterns
+- Population distribution insights
+- Policy-relevant trends and outliers
+
+Generate actionable insights for Telangana policymakers."""
 
     def _get_policy_description(self) -> str:
-        return """TASK: Create executive policy brief for Telangana government.
+        return """TASK: Create executive policy brief for Telangana government
 
 BRIEF STRUCTURE (use SaveReportTool):
 
 ## Executive Summary
 Top 3 critical findings that require immediate policy attention
 
-## Priority Recommendations
+## Priority Recommendations  
 4-5 specific, actionable interventions with:
 - Problem statement with data evidence
 - Specific action steps
@@ -220,7 +215,7 @@ Top 3 critical findings that require immediate policy attention
 
 ## Implementation Roadmap
 - Phase 1 (0-6 months): Immediate actions
-- Phase 2 (6-18 months): Medium-term reforms
+- Phase 2 (6-18 months): Medium-term reforms  
 - Phase 3 (18+ months): Long-term improvements
 
 ## Expected Outcomes
