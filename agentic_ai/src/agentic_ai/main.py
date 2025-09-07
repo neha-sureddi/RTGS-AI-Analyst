@@ -62,8 +62,9 @@ def validate_environment():
     """
     issues = []
     
+    # Ollama runs locally, set API_BASE for litellm
     if not os.getenv("API_BASE"):
-        issues.append("API_BASE not found in environment variables")
+        os.environ["API_BASE"] = "http://localhost:11434"
     
     # Check Python version
     if sys.version_info < (3, 10):
@@ -112,10 +113,11 @@ def run():
             for issue in env_issues:
                 console.print(f"  ❌ {issue}")
             
-            if any("API_BASE" in issue for issue in env_issues):
-                console.print("\n[yellow]Please set your API_BASE in the .env file:[/yellow]")
-                console.print("API_BASE=your_api_key_here")
-                return
+            # API_BASE is automatically set for Ollama
+            # if any("API_BASE" in issue for issue in env_issues):
+            #     console.print("\n[yellow]Please set your API_BASE in the .env file:[/yellow]")
+            #     console.print("API_BASE=http://localhost:11434")
+            #     return
         
         # Load user preferences
         user_prefs = get_user_preferences()

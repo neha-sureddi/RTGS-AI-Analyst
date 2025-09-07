@@ -36,7 +36,7 @@ class AgenticAICrew:
             console.print(f"[red]ERROR: Invalid YAML configuration: {e}[/red]")
             raise
 
-        llm_model = os.getenv("CREW_LLM", "ollama/llama3.1")
+        llm_model = os.getenv("CREW_LLM", "ollama/tinyllama")
 
         # Initialize agents with all required tools
         self.data_ingestion_agent = Agent(
@@ -228,9 +228,10 @@ class AgenticAICrew:
             return False
         
         
-        if not os.getenv("OLLAMA_API_KEY"):
-            console.print("[red]ERROR: OLLAMA_API_KEY not found in environment[/red]")
-            return False
+        # Ollama runs locally, no API key needed
+        # if not os.getenv("OLLAMA_API_KEY"):
+        #     console.print("[red]ERROR: OLLAMA_API_KEY not found in environment[/red]")
+        #     return False
         
         console.print("[green]✓ All pre-flight checks passed[/green]")
         return True
