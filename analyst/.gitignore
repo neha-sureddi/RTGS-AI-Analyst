@@ -12,3 +12,6 @@ data/*.csv
 !data/README.md
 .idea/
 .vscode/
+uv.lock
+
+

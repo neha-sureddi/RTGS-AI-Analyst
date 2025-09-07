@@ -183,76 +183,75 @@ class ViewColumnTool(BaseTool):
 class SafeExecuteToolInput(BaseModel):
     """Input schema for SafeExecuteTool."""
     operation: str = Field(..., description="Pandas operation to execute on the dataset")
-    save_name: str = Field(default="cleaned", description="Name to save the cleaned dataset")
+    save_name: str = Field(default="cleaned_data", description="Name to save the cleaned dataset")
 
 class SafeExecuteTool(BaseTool):
     name: str = "Execute Safe Pandas Operation"
     description: str = "Execute pandas operations with safety restrictions and automatic saving"
     args_schema: Type[BaseModel] = SafeExecuteToolInput
     
-    def _run(self, operation: str, save_name: str = "cleaned") -> str:
+    def _run(self, operation: str, save_name: str = "cleaned_data") -> str:
         global current_dataset, transformation_log
         if current_dataset is None:
             return "ERROR: No dataset loaded."
         
         try:
-            # More permissive safety checks - focus on truly dangerous operations
-            truly_dangerous = ['exec(', 'eval(', '__import__', 'subprocess', 'os.system', 'open(']
-            if any(term in operation.lower() for term in truly_dangerous):
+            # Enhanced safety checks
+            dangerous_ops = ['exec(', 'eval(', '__import__', 'subprocess', 'os.system', 'open(', 'file(']
+            if any(term in operation.lower() for term in dangerous_ops):
                 return f"UNSAFE OPERATION BLOCKED: {operation}"
             
-            # Work directly with the global dataset instead of trying to import/reload
             original_shape = current_dataset.shape
             
-            # Create safe environment with current dataset
-            safe_env = {
+            # Create safe execution environment
+            safe_globals = {
                 'df': current_dataset.copy(),
                 'pd': pd,
                 'np': np,
-                '__builtins__': {},
-                'str': str,
-                'int': int,
-                'float': float,
-                'list': list,
-                'dict': dict,
-                'tuple': tuple,
-                'len': len,
-                'range': range,
-                'enumerate': enumerate
+                '__builtins__': {}
             }
             
-            # Execute operation on the copy
-            if operation.startswith('df.'):
-                result_df = eval(operation, safe_env)
-            else:
-                # Handle more complex operations
-                result_df = eval(f"df.{operation}", safe_env)
-            
-            if isinstance(result_df, pd.DataFrame):
-                current_dataset = result_df
+            # Execute operation
+            try:
+                if not operation.startswith('df'):
+                    operation = f"df.{operation}"
+                    
+                result = eval(operation, safe_globals)
                 
-                # Log transformation
-                log_entry = f"Applied: {operation} | Shape: {original_shape} -> {current_dataset.shape}"
-                transformation_log.append(log_entry)
-                
-                # Save cleaned dataset
-                output_path = f"outputs/cleaned_data/{save_name}.csv"
-                os.makedirs(os.path.dirname(output_path), exist_ok=True)
-                current_dataset.to_csv(output_path, index=False)
-                
-                return (
-                    f"EXECUTED: {operation}\n"
-                    f"ORIGINAL SHAPE: {original_shape}\n"
-                    f"NEW SHAPE: {current_dataset.shape}\n"
-                    f"ROWS CHANGED: {original_shape[0] - current_dataset.shape[0]}\n"
-                    f"SAVED TO: {output_path}"
-                )
-            else:
-                return f"Operation returned {type(result_df)}, not DataFrame. Result: {result_df}"
+                # Update dataset if result is a DataFrame
+                if isinstance(result, pd.DataFrame):
+                    current_dataset = result
+                    
+                    # Create output directory
+                    os.makedirs("outputs/cleaned_data", exist_ok=True)
+                    
+                    # Save with proper extension
+                    if not save_name.endswith('.csv'):
+                        save_name += '.csv'
+                    
+                    output_path = f"outputs/cleaned_data/{save_name}"
+                    current_dataset.to_csv(output_path, index=False)
+                    
+                    # Log transformation
+                    log_entry = f"Applied: {operation} | Shape: {original_shape} -> {current_dataset.shape}"
+                    transformation_log.append(log_entry)
+                    
+                    return (
+                        f"OPERATION EXECUTED: {operation}\n"
+                        f"ORIGINAL SHAPE: {original_shape}\n"
+                        f"NEW SHAPE: {current_dataset.shape}\n"
+                        f"ROWS CHANGED: {original_shape[0] - current_dataset.shape[0]}\n"
+                        f"SAVED TO: {output_path}\n"
+                        f"STATUS: Cleaned dataset ready for analysis"
+                    )
+                else:
+                    return f"Operation result: {result} (Type: {type(result)})"
+                    
+            except Exception as exec_error:
+                return f"EXECUTION ERROR: {str(exec_error)}\nOperation: {operation}"
                 
         except Exception as e:
-            return f"EXECUTION ERROR: {str(e)}"
-   
+            return f"TOOL ERROR: {str(e)}"
 
 class CalculateStatsToolInput(BaseModel):
     """Input schema for CalculateStatsTool."""
@@ -280,12 +279,11 @@ class CalculateStatsTool(BaseTool):
                     return "No numeric columns for correlation analysis"
                 
                 corr = numeric_df.corr()
-                # Find strong correlations
                 strong_corr = []
                 for i in range(len(corr.columns)):
                     for j in range(i+1, len(corr.columns)):
                         val = corr.iloc[i, j]
-                        if abs(val) > 0.5:
+                        if abs(val) > 0.5 and not pd.isna(val):
                             strong_corr.append(f"{corr.columns[i]} <-> {corr.columns[j]}: {val:.3f}")
                 
                 result = f"CORRELATION MATRIX:\n{corr.to_string()}\n\n"
@@ -294,36 +292,46 @@ class CalculateStatsTool(BaseTool):
                 return result
             
             elif stat_type == "groupby" and parameters:
-                parts = [p.strip() for p in parameters.split(',')]
-                if len(parts) < 3:
+                # Handle different parameter formats
+                if ',' in parameters:
+                    parts = [p.strip() for p in parameters.split(',')]
+                    if len(parts) >= 3:
+                        group_col, value_col, agg_func = parts[:3]
+                    else:
+                        return "Format: group_column,value_column,agg_function"
+                else:
                     return "Format: group_column,value_column,agg_function"
                 
-                group_col, value_col, agg_func = parts[:3]
-                
                 if group_col not in current_dataset.columns:
-                    return f"Group column '{group_col}' not found"
+                    return f"Group column '{group_col}' not found. Available: {list(current_dataset.columns)}"
                 if value_col not in current_dataset.columns:
-                    return f"Value column '{value_col}' not found"
+                    return f"Value column '{value_col}' not found. Available: {list(current_dataset.columns)}"
                 
-                grouped = current_dataset.groupby(group_col)[value_col]
-                
-                if agg_func == "sum":
-                    result = grouped.sum().sort_values(ascending=False)
-                elif agg_func == "mean":
-                    result = grouped.mean().sort_values(ascending=False)
-                elif agg_func == "count":
-                    result = grouped.count().sort_values(ascending=False)
-                elif agg_func == "std":
-                    result = grouped.std().sort_values(ascending=False)
-                else:
-                    return "Available functions: sum, mean, count, std"
-                
-                return f"GROUPED {agg_func.upper()} - {group_col} by {value_col}:\n{result.to_string()}"
+                try:
+                    grouped = current_dataset.groupby(group_col)[value_col]
+                    
+                    if agg_func == "sum":
+                        result = grouped.sum().sort_values(ascending=False)
+                    elif agg_func == "mean":
+                        result = grouped.mean().sort_values(ascending=False)
+                    elif agg_func == "count":
+                        result = grouped.count().sort_values(ascending=False)
+                    elif agg_func == "std":
+                        result = grouped.std().sort_values(ascending=False)
+                    else:
+                        return "Available functions: sum, mean, count, std"
+                    
+                    return f"GROUPED {agg_func.upper()} - {group_col} by {value_col}:\n{result.to_string()}"
+                except Exception as e:
+                    return f"Groupby error: {str(e)}"
             
-            elif stat_type == "value_counts" and parameters:
-                col = parameters.strip()
+            elif stat_type == "value_counts":
+                col = parameters.strip() if parameters else None
+                if not col:
+                    return "Please specify column name in parameters"
+                    
                 if col not in current_dataset.columns:
-                    return f"Column '{col}' not found"
+                    return f"Column '{col}' not found. Available: {list(current_dataset.columns)}"
                     
                 counts = current_dataset[col].value_counts().head(20)
                 percentages = (current_dataset[col].value_counts(normalize=True) * 100).head(20)
@@ -472,3 +480,71 @@ class SaveReportTool(BaseTool):
             return f"REPORT SAVED: {file_path} ({len(content)} characters)"
         except Exception as e:
             return f"ERROR saving report: {str(e)}"
+
+# Quick cleaning utility function
+class QuickCleanToolInput(BaseModel):
+    """Input schema for QuickCleanTool."""
+    dummy: str = Field(default="", description="Dummy parameter")
+
+class QuickCleanTool(BaseTool):
+    name: str = "Quick Data Clean"
+    description: str = "Perform comprehensive data cleaning automatically"
+    args_schema: Type[BaseModel] = QuickCleanToolInput
+    
+    def _run(self, dummy: str = "") -> str:
+        global current_dataset, transformation_log
+        if current_dataset is None:
+            return "ERROR: No dataset loaded."
+        
+        try:
+            original_shape = current_dataset.shape
+            cleaning_steps = []
+            
+            # Step 1: Remove duplicates
+            before_dup = len(current_dataset)
+            current_dataset = current_dataset.drop_duplicates()
+            after_dup = len(current_dataset)
+            if before_dup != after_dup:
+                cleaning_steps.append(f"Removed {before_dup - after_dup} duplicate rows")
+            
+            # Step 2: Clean text columns
+            text_cols = current_dataset.select_dtypes(include=['object']).columns
+            for col in text_cols:
+                if current_dataset[col].dtype == 'object':
+                    current_dataset[col] = current_dataset[col].astype(str).str.strip()
+                    cleaning_steps.append(f"Cleaned text in column: {col}")
+            
+            # Step 3: Handle missing values intelligently
+            for col in current_dataset.columns:
+                missing_count = current_dataset[col].isnull().sum()
+                if missing_count > 0:
+                    if pd.api.types.is_numeric_dtype(current_dataset[col]):
+                        current_dataset[col].fillna(current_dataset[col].median(), inplace=True)
+                        cleaning_steps.append(f"Filled {missing_count} missing values in {col} with median")
+                    else:
+                        mode_val = current_dataset[col].mode()
+                        if len(mode_val) > 0:
+                            current_dataset[col].fillna(mode_val[0], inplace=True)
+                            cleaning_steps.append(f"Filled {missing_count} missing values in {col} with mode")
+            
+            # Save cleaned data
+            os.makedirs("outputs/cleaned_data", exist_ok=True)
+            output_path = "outputs/cleaned_data/cleaned_data.csv"
+            current_dataset.to_csv(output_path, index=False)
+            
+            # Log all steps
+            for step in cleaning_steps:
+                transformation_log.append(f"AUTO-CLEAN: {step}")
+            
+            result = (
+                f"QUICK CLEANING COMPLETED\n"
+                f"Original Shape: {original_shape}\n"
+                f"Final Shape: {current_dataset.shape}\n"
+                f"Cleaning Steps:\n" + "\n".join([f"- {step}" for step in cleaning_steps]) + "\n"
+                f"SAVED TO: {output_path}"
+            )
+            
+            return result
+            
+        except Exception as e:
+            return f"ERROR during quick clean: {str(e)}"

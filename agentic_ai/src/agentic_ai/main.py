@@ -86,12 +86,12 @@ def validate_environment():
     
     # Check LLM model availability
     try:
-        # Check if Perplexity API key is available
-        if os.getenv("PERPLEXITY_API_KEY"):
-            console.print("[green]✅ Perplexity API key found - will use Perplexity LLM[/green]")
+        # Prefer Gemini for all tasks, fallback to TinyLlama
+        if os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"):
+            console.print("[green]✅ Gemini API key found - will use Gemini LLM[/green]")
         else:
-            console.print("[yellow]⚠️  PERPLEXITY_API_KEY not found - will use TinyLlama[/yellow]")
-            console.print("[yellow]For better analysis quality, consider setting up Perplexity API key[/yellow]")
+            console.print("[yellow]⚠️  GEMINI/GOOGLE API key not found - will use TinyLlama fallback[/yellow]")
+            console.print("[yellow]Set GEMINI_API_KEY or GOOGLE_API_KEY in your .env for best results[/yellow]")
             
     except Exception as e:
         console.print(f"[yellow]WARNING: Error checking LLM configuration: {str(e)}[/yellow]")

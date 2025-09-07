@@ -8,6 +8,8 @@ from rich.table import Table
 from rich.panel import Panel
 from tabulate import tabulate
 from crewai import Agent, Task, Crew, Process
+
+# Import tools
 from .tools.data_tools import (
     ReadCSVTool, InspectDataTool, ViewColumnTool, SafeExecuteTool,
     CalculateStatsTool, SaveSchemaTool, LogTransformationTool, SaveReportTool
@@ -16,23 +18,10 @@ from .tools.save_chart_tool import SaveChartTool
 from .tools.detect_outliers_tool import DetectOutliersTool
 from .tools.trend_analysis_tool import TrendAnalysisTool
 
-console = Console()
+# Import and instantiate the LLMConfigManager
+from .llm_config import LLMConfigManager
 
-def get_llm_model():
-    """
-    Get the appropriate LLM model for agents.
-    Uses Perplexity if API key is available, otherwise falls back to TinyLlama.
-    """
-    # Check if Perplexity API key is available
-    if os.getenv("PERPLEXITY_API_KEY"):
-        console.print("[green]✅ Using Perplexity LLM for all agents[/green]")
-        # Try the most basic model name
-        return "perplexity/sonar"
-    else:
-        console.print("[yellow]⚠️  PERPLEXITY_API_KEY not found, using TinyLlama[/yellow]")
-        # Set API base for Ollama
-        os.environ["API_BASE"] = "http://localhost:11434"
-        return "ollama/tinyllama"
+console = Console()
 
 class AgenticAICrew:
     def __init__(self, user_prefs=None):
@@ -52,10 +41,11 @@ class AgenticAICrew:
             console.print(f"[red]ERROR: Invalid YAML configuration: {e}[/red]")
             raise
 
-        # Get LLM model for all agents
-        llm_model = get_llm_model()
+        # Initialize LLMConfigManager and display model status
+        self.llm_config_manager = LLMConfigManager()
+        self.llm_config_manager.display_model_status()
 
-        # Initialize agents with all required tools
+        # Initialize agents with all required tools and dynamic LLM selection
         self.data_ingestion_agent = Agent(
             role=self.agents_config['data_ingestion_agent']['role'],
             goal=self.agents_config['data_ingestion_agent']['goal'], 
@@ -68,7 +58,7 @@ class AgenticAICrew:
                 SaveReportTool()
             ],
             verbose=True,
-            llm=llm_model
+            llm=self.llm_config_manager.get_llm_string('data_ingestion_agent')
         )
         
         self.data_standardization_agent = Agent(
@@ -84,7 +74,7 @@ class AgenticAICrew:
                 SaveReportTool()
             ],
             verbose=True,
-            llm=llm_model
+            llm=self.llm_config_manager.get_llm_string('data_standardization_agent')
         )
         
         self.analysis_agent = Agent(
@@ -98,7 +88,7 @@ class AgenticAICrew:
                 SaveReportTool()
             ],
             verbose=True,
-            llm=llm_model
+            llm=self.llm_config_manager.get_llm_string('analysis_agent')
         )
         
         self.policy_insights_agent = Agent(
@@ -107,7 +97,7 @@ class AgenticAICrew:
             backstory=self.agents_config['policy_insights_agent']['backstory'],
             tools=[SaveReportTool()],
             verbose=True,
-            llm=llm_model
+            llm=self.llm_config_manager.get_llm_string('policy_insights_agent')
         )
 
         # Create tasks with proper context and enhanced descriptions
@@ -188,7 +178,7 @@ class AgenticAICrew:
         """Execute the AI Agent pipeline with comprehensive error handling and progress tracking"""
         
         console.print(Panel.fit(
-            "[bold blue]🏛️  AGENTIC AI SYSTEM FOR TELANGANA DATA ANALYSIS[/bold blue]\n"
+            "[bold blue]🏛️  AGENTIC AI SYSTEM FOR TELANGANA DATA ANALYSIS[/bold blue]\n"
             "[yellow]Multi-Agent Pipeline for Government Data Insights[/yellow]",
             border_style="blue"
         ))
@@ -244,12 +234,6 @@ class AgenticAICrew:
             console.print(f"[red]ERROR: Cannot read CSV file: {str(e)}[/red]")
             return False
         
-        
-        # Ollama runs locally, no API key needed
-        # if not os.getenv("OLLAMA_API_KEY"):
-        #     console.print("[red]ERROR: OLLAMA_API_KEY not found in environment[/red]")
-        #     return False
-        
         console.print("[green]✓ All pre-flight checks passed[/green]")
         return True
 
@@ -273,7 +257,7 @@ class AgenticAICrew:
         # File checks with enhanced information
         file_checks = [
             ("📥 Data Ingestion Report", "outputs/logs/ingestion_report.md", "Initial dataset analysis and quality assessment"),
-            ("🗺️  Dataset Schema Map", "outputs/logs/schema_map.json", "Complete data structure documentation"),
+            ("🗺️  Dataset Schema Map", "outputs/logs/schema_map.json", "Complete data structure documentation"),
             ("📝 Schema Documentation", "outputs/logs/schema_map.md", "Human-readable schema analysis"),
             ("🧹 Data Cleaning Report", "outputs/logs/standardization_report.md", "Detailed cleaning and transformation log"),
             ("📊 Statistical Analysis", "outputs/reports/analysis_report.md", "Comprehensive data analysis and patterns"),
@@ -293,7 +277,7 @@ class AgenticAICrew:
         if os.path.exists(cleaned_folder) and os.listdir(cleaned_folder):
             for file in os.listdir(cleaned_folder):
                 if file.endswith('.csv'):
-                    file_checks.append((f"🗃️  Cleaned Dataset: {file}", os.path.join(cleaned_folder, file), "Processed and cleaned data"))
+                    file_checks.append((f"🗃️  Cleaned Dataset: {file}", os.path.join(cleaned_folder, file), "Processed and cleaned data"))
         
         # Create results table
         table = Table(title="Generated Analysis Outputs", show_header=True, header_style="bold magenta")

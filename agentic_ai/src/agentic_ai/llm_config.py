@@ -56,20 +56,20 @@ class LLMConfigManager:
             console.print(f"[yellow]WARNING: No config found for model {model_name}, using fallback[/yellow]")
             return self._get_fallback_llm_string()
         
-        provider = model_config.get('provider', 'ollama')
-        model_name_config = model_config.get('model_name', 'tinyllama')
+        provider = model_config.get('provider')
+        model_name_config = model_config.get('model_name')
         
-        if provider == 'perplexity':
-            # Check for API key
-            api_key_env = model_config.get('api_key_env', 'PERPLEXITY_API_KEY')
-            if not os.getenv(api_key_env):
-                console.print(f"[yellow]WARNING: {api_key_env} not found, falling back to TinyLlama[/yellow]")
+        # litellm needs a different format depending on provider
+        if provider == 'gemini':
+            # Support both common env var names for Gemini
+            api_key_env = model_config.get('api_key_env', 'GOOGLE_API_KEY')
+            gemini_key = os.getenv('GEMINI_API_KEY') or os.getenv(api_key_env)
+            if not gemini_key:
+                console.print("[yellow]WARNING: GEMINI_API_KEY/GOOGLE_API_KEY not found, falling back to TinyLlama[/yellow]")
                 return self._get_fallback_llm_string()
-            
-            return f"perplexity/{model_name_config}"
+            return f"{provider}/{model_name_config}"
         
         elif provider == 'ollama':
-            # Set API base for Ollama
             api_base = model_config.get('api_base', 'http://localhost:11434')
             os.environ['API_BASE'] = api_base
             return f"ollama/{model_name_config}"
@@ -101,14 +101,13 @@ class LLMConfigManager:
         if not model_config:
             return False
         
-        provider = model_config.get('provider', 'ollama')
+        provider = model_config.get('provider')
         
-        if provider == 'perplexity':
-            api_key_env = model_config.get('api_key_env', 'PERPLEXITY_API_KEY')
-            return bool(os.getenv(api_key_env))
+        if provider == 'gemini':
+            api_key_env = model_config.get('api_key_env', 'GOOGLE_API_KEY')
+            return bool(os.getenv('GEMINI_API_KEY') or os.getenv(api_key_env))
         
         elif provider == 'ollama':
-            # For Ollama, we assume it's running locally
             return True
         
         return False
@@ -134,17 +133,16 @@ class LLMConfigManager:
             status_text = "Available" if is_available else "Not Available"
             
             console.print(f"{status_icon} [bold]{model_name}[/bold]: {status_text}")
-            console.print(f"   {description}")
+            console.print(f"   {description}")
             
-            if not is_available and model_config.get('provider') == 'perplexity':
-                api_key_env = model_config.get('api_key_env', 'PERPLEXITY_API_KEY')
-                console.print(f"   [yellow]Missing: {api_key_env} environment variable[/yellow]")
+            if not is_available and model_config.get('provider') == 'gemini':
+                api_key_env = model_config.get('api_key_env', 'GOOGLE_API_KEY')
+                console.print(f"   [yellow]Missing: {api_key_env} environment variable[/yellow]")
         
         console.print(f"\n[bold]Agent Model Mapping:[/bold]")
         for agent_name, model_name in self.agent_mapping.items():
             status = "✅" if availability.get(model_name, False) else "❌"
             console.print(f"{status} {agent_name}: {model_name}")
-
 
 # Global instance for easy access
 llm_config = LLMConfigManager()
