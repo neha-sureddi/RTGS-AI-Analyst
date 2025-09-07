@@ -1,0 +1,64 @@
+# LLM Configuration for Agentic AI System
+# This file defines which LLM models to use for different types of tasks
+
+# Model configurations
+models:
+  # TinyLlama - Fast, lightweight model for simple operations
+  tinyllama:
+    provider: "ollama"
+    model_name: "tinyllama"
+    api_base: "http://localhost:11434"
+    description: "Fast local model for data ingestion and standardization tasks"
+    capabilities:
+      - data_loading
+      - basic_data_validation
+      - simple_transformations
+      - schema_documentation
+    
+  # Perplexity - Advanced model for complex analysis
+  perplexity:
+    provider: "perplexity"
+    model_name: "sonar"
+    api_key_env: "PERPLEXITY_API_KEY"
+    description: "Advanced model for complex analysis and policy insights"
+    capabilities:
+      - complex_analysis
+      - pattern_recognition
+      - policy_recommendations
+      - strategic_thinking
+      - executive_summaries
+
+# Agent-to-model mapping
+agent_model_mapping:
+  # Use Perplexity for all agents to ensure proper tool execution
+  data_ingestion_agent: "perplexity"
+  data_standardization_agent: "perplexity"
+  analysis_agent: "perplexity"
+  policy_insights_agent: "perplexity"
+
+# Fallback configuration
+fallback_model: "tinyllama"
+
+# Model selection criteria
+model_selection:
+  # Use Perplexity for tasks requiring:
+  perplexity_triggers:
+    - "analysis"
+    - "insights"
+    - "policy"
+    - "recommendations"
+    - "strategic"
+    - "complex"
+    - "pattern"
+    - "trend"
+  
+  # Use TinyLlama for tasks requiring:
+  tinyllama_triggers:
+    - "load"
+    - "read"
+    - "validate"
+    - "clean"
+    - "transform"
+    - "standardize"
+    - "schema"
+    - "documentation"

@@ -87,44 +87,47 @@ analysis_task:
     Now conduct a comprehensive analysis of the cleaned dataset to identify governance insights
     that will be valuable for Telangana policymakers. Focus on patterns that reveal actionable
     opportunities for improving governance outcomes.
-    
+
     Systematic analysis approach:
-    
-    1. Use CalculateStatsTool with "describe" to understand overall data patterns
-    2. Identify geographic/administrative dimensions and use "groupby" analysis to find imbalances
-    3. Use "correlation" analysis to identify relationships between governance variables
-    4. Use "value_counts" on key categorical variables to understand distribution patterns
-    5. Apply your governance expertise to interpret what these patterns mean for policy
-    6. Use SaveChartTool to create at least one compelling visualization that highlights a key insight
-    
+
+    1. Use ReadCSVTool to load the cleaned dataset from the previous task's output. The previous agent
+       indicated the cleaned file is named 'cleaned_birth_data_step6.csv' and is saved in
+       'outputs/cleaned_data/'.
+    2. Use CalculateStatsTool with "describe" to understand overall data patterns
+    3. Identify geographic/administrative dimensions and use "groupby" analysis to find imbalances
+    4. Use "correlation" analysis to identify relationships between governance variables
+    5. Use "value_counts" on key categorical variables to understand distribution patterns
+    6. Apply your governance expertise to interpret what these patterns mean for policy
+    7. Use SaveChartTool to create at least one compelling visualization that highlights a key insight
+
     Focus your analysis on discovering:
     - Geographic imbalances suggesting unequal resource allocation or service access
     - Performance variations indicating administrative efficiency differences
     - Trends or patterns suggesting systemic strengths or weaknesses  
     - Outliers or anomalies that might indicate issues needing investigation
     - Correlations that suggest policy intervention opportunities
-    
+
     Remember: Don't just report numbers. Interpret what they mean for Telangana governance
     and citizen welfare. Think about what busy policymakers would find most actionable.
-    
+
   expected_output: >
     Generate a comprehensive governance analysis report in markdown format:
-    
+
     ## Executive Summary of Key Findings
     The most critical governance insights discovered that demand policy attention
-    
+
     ## Geographic/Administrative Analysis
     Regional variations and imbalances with implications for resource allocation
-    
+
     ## Performance Pattern Analysis  
     Systemic strengths, weaknesses, and efficiency variations across administrative units
-    
+
     ## Critical Issues Requiring Attention
     Specific problems identified that need immediate policy intervention
-    
+
     ## Opportunity Areas for Policy Impact
     Data-supported recommendations for where interventions could have highest impact
-    
+
     ## Supporting Statistical Evidence
     Key analyses and calculations that substantiate your governance findings
 

@@ -8,6 +8,10 @@ from rich.panel import Panel
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Also try to load from env.example if .env doesn't exist
+if not os.path.exists('.env') and os.path.exists('env.example'):
+    load_dotenv('env.example')
 console = Console()
 
 def get_user_preferences():
@@ -79,6 +83,18 @@ def validate_environment():
                 console.print(f"[yellow]Created missing directory: {dir_name}[/yellow]")
             except Exception as e:
                 issues.append(f"Cannot create directory {dir_name}: {str(e)}")
+    
+    # Check LLM model availability
+    try:
+        # Check if Perplexity API key is available
+        if os.getenv("PERPLEXITY_API_KEY"):
+            console.print("[green]✅ Perplexity API key found - will use Perplexity LLM[/green]")
+        else:
+            console.print("[yellow]⚠️  PERPLEXITY_API_KEY not found - will use TinyLlama[/yellow]")
+            console.print("[yellow]For better analysis quality, consider setting up Perplexity API key[/yellow]")
+            
+    except Exception as e:
+        console.print(f"[yellow]WARNING: Error checking LLM configuration: {str(e)}[/yellow]")
     
     return issues
 

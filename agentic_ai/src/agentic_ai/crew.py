@@ -18,6 +18,22 @@ from .tools.trend_analysis_tool import TrendAnalysisTool
 
 console = Console()
 
+def get_llm_model():
+    """
+    Get the appropriate LLM model for agents.
+    Uses Perplexity if API key is available, otherwise falls back to TinyLlama.
+    """
+    # Check if Perplexity API key is available
+    if os.getenv("PERPLEXITY_API_KEY"):
+        console.print("[green]✅ Using Perplexity LLM for all agents[/green]")
+        # Try the most basic model name
+        return "perplexity/sonar"
+    else:
+        console.print("[yellow]⚠️  PERPLEXITY_API_KEY not found, using TinyLlama[/yellow]")
+        # Set API base for Ollama
+        os.environ["API_BASE"] = "http://localhost:11434"
+        return "ollama/tinyllama"
+
 class AgenticAICrew:
     def __init__(self, user_prefs=None):
         self.user_prefs = user_prefs or {}
@@ -36,7 +52,8 @@ class AgenticAICrew:
             console.print(f"[red]ERROR: Invalid YAML configuration: {e}[/red]")
             raise
 
-        llm_model = os.getenv("CREW_LLM", "ollama/tinyllama")
+        # Get LLM model for all agents
+        llm_model = get_llm_model()
 
         # Initialize agents with all required tools
         self.data_ingestion_agent = Agent(
